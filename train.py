@@ -2,11 +2,11 @@ import argparse
 from functools import partial
 
 import torch
+import wandb
 from datasets import load_dataset
 from torch.optim import AdamW
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-import wandb
 from src.dpo_loss import collate_fn, seed_everything
 from src.train_utils import train
 
@@ -20,7 +20,9 @@ def main():
     parser.add_argument("--max_length", type=int, default=256)
     parser.add_argument("--lr", type=float, default=1e-6)
     parser.add_argument("--seed", type=int, default=2003)
-    parser.add_argument("--model_name", type=str, default="HuggingFaceTB/SmolLM-135M-Instruct")
+    parser.add_argument(
+        "--model_name", type=str, default="HuggingFaceTB/SmolLM-135M-Instruct"
+    )
     parser.add_argument("--dataset_name", type=str, default="jondurbin/truthy-dpo-v0.1")
     parser.add_argument("--wandb_project", type=str, default="dpo")
 
@@ -32,7 +34,7 @@ def main():
     wandb.init(project=args.wandb_project, config=args)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
+
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     tokenizer.pad_token = tokenizer.eos_token
     model = AutoModelForCausalLM.from_pretrained(args.model_name).to(device)
