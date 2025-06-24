@@ -52,10 +52,17 @@ def calculate_DPO_loss(
     )
 
 
-def get_log_prob(logits, labels):
+def get_log_prob(logits, labels, prompt_lengths):
     log_probs = F.log_softmax(logits, dim=-1)
-    return torch.gather(log_probs, -1, labels.unsqueeze(-1)).squeeze(-1).mean(-1)
-
+    token_log_probs = torch.gather(log_probs, -1, labels.unsqueeze(-1)).squeeze(-1)
+    
+    batch_size, seq_len = labels.shape
+    response_mask = torch.arange(seq_len, device=labels.device).unsqueeze(0) >= prompt_lengths.unsqueeze(1)
+    response_mask = response_mask.float()
+    
+    response_log_probs = (token_log_probs * response_mask).sum(dim=-1)
+    response_lengths = response_mask.sum(dim=-1).clamp(min=1)
+    return response_log_probs / response_lengths
 
 def collate_fn(batch, tokenizer, max_length, device):
     prompt_encodings = tokenizer(
@@ -102,7 +109,7 @@ def collate_fn(batch, tokenizer, max_length, device):
         rejected_encodings.attention_mask
     ], dim=-1).to(device)
 
-    prompt_lengths = prompt_encodings.attention_mask.sum(dim=-1)
+    prompt_lengths = prompt_encodings.attention_mask.sum(dim=-1).to(device)
 
     return {
         'prompt_preferred_ids': prompt_preferred_ids,
