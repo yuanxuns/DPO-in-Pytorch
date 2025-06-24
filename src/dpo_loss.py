@@ -6,11 +6,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import wandb
 from datasets import load_dataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+import wandb
 
 
 def seed_everything(seed=2003):
@@ -57,45 +58,56 @@ def get_log_prob(logits, labels):
 
 
 def collate_fn(batch, tokenizer, max_length, device):
-    prompts = ["Instruct: " + item["prompt"] + "\n" for item in batch]
-    chosen_responses = ["Output: " + item["chosen"] for item in batch]
-    rejected_responses = ["Output: " + item["rejected"] for item in batch]
-
-    prompt_ids = tokenizer.batch_encode_plus(
-        prompts,
-        padding=True,
-        return_tensors="pt",
-        max_length=max_length,
+    prompt_encodings = tokenizer(
+        ['Instruct: ' + item['prompt'] + '\n' for item in batch],
+        padding='max_length',
         truncation=True,
-    )["input_ids"].to(device)
-    prefered_ids = tokenizer.batch_encode_plus(
-        chosen_responses,
-        padding=True,
-        return_tensors="pt",
         max_length=max_length,
-        truncation=True,
-    )["input_ids"].to(device)
-    disprefered_ids = tokenizer.batch_encode_plus(
-        rejected_responses,
-        padding=True,
-        return_tensors="pt",
-        max_length=max_length,
-        truncation=True,
-    )["input_ids"].to(device)
-
-    prompt_prefered_ids = torch.cat([prompt_ids, prefered_ids], dim=-1)
-    prompt_disprefered_ids = torch.cat([prompt_ids, disprefered_ids], dim=-1)
-
-    prompt_prefered_mask = torch.cat(
-        [torch.ones_like(prompt_ids), torch.zeros_like(prefered_ids)], dim=-1
+        return_tensors='pt'
     )
-    prompt_disprefered_mask = torch.cat(
-        [torch.ones_like(prompt_ids), torch.zeros_like(disprefered_ids)], dim=-1
+    
+    chosen_encodings = tokenizer(
+        ['Output: ' + item['chosen'] for item in batch],
+        padding='max_length',
+        truncation=True,
+        max_length=max_length,
+        return_tensors='pt'
     )
+    
+    rejected_encodings = tokenizer(
+        ['Output: ' + item['rejected'] for item in batch],
+        padding='max_length',
+        truncation=True,
+        max_length=max_length,
+        return_tensors='pt'
+    )
+
+    prompt_preferred_ids = torch.cat([
+        prompt_encodings.input_ids,
+        chosen_encodings.input_ids
+    ], dim=-1).to(device)
+    
+    prompt_dispreferred_ids = torch.cat([
+        prompt_encodings.input_ids,
+        rejected_encodings.input_ids
+    ], dim=-1).to(device)
+
+    prompt_preferred_mask = torch.cat([
+        prompt_encodings.attention_mask,
+        chosen_encodings.attention_mask
+    ], dim=-1).to(device)
+    
+    prompt_dispreferred_mask = torch.cat([
+        prompt_encodings.attention_mask,
+        rejected_encodings.attention_mask
+    ], dim=-1).to(device)
+
+    prompt_lengths = prompt_encodings.attention_mask.sum(dim=-1)
 
     return {
-        "prompt_prefered_ids": prompt_prefered_ids,
-        "prompt_disprefered_ids": prompt_disprefered_ids,
-        "prompt_prefered_mask": prompt_prefered_mask,
-        "prompt_disprefered_mask": prompt_disprefered_mask,
+        'prompt_preferred_ids': prompt_preferred_ids,
+        'prompt_dispreferred_ids': prompt_dispreferred_ids,
+        'prompt_preferred_mask': prompt_preferred_mask,
+        'prompt_dispreferred_mask': prompt_dispreferred_mask,
+        'prompt_lengths': prompt_lengths
     }

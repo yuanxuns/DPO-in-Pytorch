@@ -3,9 +3,9 @@ import pandas
 import torch
 import torch.functional as F
 import torch.nn as nn
-import wandb
 from tqdm import tqdm
 
+import wandb
 from src.dpo_loss import calculate_DPO_loss, get_log_prob
 
 
@@ -17,10 +17,10 @@ def train(model, ref_model, tokenizer, optimizer, train_dataloader, epochs=1, be
         for batch in tqdm(train_dataloader):
             optimizer.zero_grad()
 
-            prompt_prefered_ids = batch["prompt_prefered_ids"]
-            prompt_disprefered_ids = batch["prompt_disprefered_ids"]
-            prompt_prefered_mask = batch["prompt_prefered_mask"]
-            prompt_disprefered_mask = batch["prompt_disprefered_mask"]
+            prompt_prefered_ids = batch["prompt_preferred_ids"]
+            prompt_disprefered_ids = batch["prompt_dispreferred_ids"]
+            prompt_prefered_mask = batch["prompt_preferred_mask"]
+            prompt_disprefered_mask = batch["prompt_dispreferred_mask"]
 
             model_prefered_log_prob = get_log_prob(
                 model(prompt_prefered_ids, attention_mask=prompt_prefered_mask).logits,
