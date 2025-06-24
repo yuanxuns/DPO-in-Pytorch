@@ -8,7 +8,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 import wandb
 from src.dpo_loss import collate_fn, seed_everything
-from src.train import train
+from src.train_utils import train
 
 
 def main():

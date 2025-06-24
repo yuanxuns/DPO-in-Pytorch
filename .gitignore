@@ -2,3 +2,5 @@ __*
 wandb*
 .vscode*
 *.pt/
+*__pycache__*
+*.ipynb_checkpoints
