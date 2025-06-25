@@ -13,13 +13,14 @@ Direct Preference Optimization is a method introduced by Rafailov *et al.* (Neur
 - Avoids reinforcement learning loops and hyperparameter tuning.
 - Uses a simple binary cross‑entropy loss on *preferred vs. dispreferred* model outputs.
 - Matches or outperforms RLHF in tasks like sentiment control, summarization, and dialogue.
-
+<br />
 
 ## Why DPO?
 
 - **Simplicity**: Direct classification-based loss; no RL or reward model :contentReference 
 - **Performance**: Matches or beats PPO‑based RLHF in key benchmarks 
 - **Efficiency**: Lightweight training; fewer computations & no sampling loops :contentReference  
+<br />
 
 
 ## DPO Loss Module
@@ -34,15 +35,17 @@ In `src/dpo_loss.py`, the heart of DPO is implemented:
         beta * (prefered_relative_logprob - disprefered_relative_logprob)
     ).mean(dim=-1)
 ```
+<br />
 
 
 ## Training Script
 ```
 bash run_training.sh
 ```
+<br />
 
 
-## Reference:
+## References:
 https://arxiv.org/abs/2305.18290
 
 https://github.com/mrunalmania/Direct-Preference-Optimization/tree/main
