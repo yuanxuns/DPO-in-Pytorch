@@ -44,6 +44,26 @@ bash run_training.sh
 ```
 <br />
 
+## Empirical Results
+Due to the limitation of a single 3060 GPU, I use `SmolLM-135M-Instruct` with `batch size 2` on the `jondurbin/truthy-dpo-v0.1 dataset`.
+
+```
+python train.py \
+    --epochs 5 \
+    --batch_size 2 \
+    --max_length 256 \
+    --lr 1e-6 \
+    --beta 0.1 \
+    --seed 2003 \
+    --model_name "HuggingFaceTB/SmolLM-135M-Instruct" \
+    --dataset_name "jondurbin/truthy-dpo-v0.1" \
+    --wandb_project "dpo"
+```
+
+`The training is pretty stable with naive settings above. The loss, reward accuracy and reward margin converged.`
+![Screenshot from 2025-06-24 17-26-21](https://github.com/user-attachments/assets/b0853299-db31-40d6-99af-8f75fe55febf)
+
+<br />
 
 ## References:
 https://arxiv.org/abs/2305.18290
