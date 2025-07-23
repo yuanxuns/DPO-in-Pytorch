@@ -19,7 +19,7 @@ Direct Preference Optimization is a method introduced by Rafailov *et al.* (Neur
 
 - **Simplicity**: Direct classification-based loss; no RL or reward model :contentReference 
 - **Performance**: Matches or beats PPO‑based RLHF in key benchmarks 
-- **Efficiency**: Lightweight training; fewer computations & no sampling loops :contentReference  
+- **Efficiency**: Lightweight training; fewer computations & no sampling loops
 <br />
 
 
